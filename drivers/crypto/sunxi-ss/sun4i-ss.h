@@ -23,6 +23,7 @@
 #include <linux/scatterlist.h>
 #include <linux/interrupt.h>
 #include <linux/delay.h>
+#include <linux/hw_random.h>
 #include <crypto/md5.h>
 #include <crypto/sha.h>
 #include <crypto/hash.h>
@@ -125,6 +126,9 @@
 #define SS_RXFIFO_EMP_INT_ENABLE	(1 << 2)
 #define SS_TXFIFO_AVA_INT_ENABLE	(1 << 0)
 
+#define SS_SEED_LEN (192 / 8)
+#define SS_DATA_LEN (160 / 8)
+
 struct sun4i_ss_ctx {
 	void __iomem *base;
 	int irq;
@@ -134,6 +138,8 @@ struct sun4i_ss_ctx {
 	struct device *dev;
 	struct resource *res;
 	spinlock_t slock; /* control the use of the device */
+	struct hwrng hwrng;
+	u32 seed[SS_SEED_LEN / 4];
 };
 
 struct sun4i_ss_alg_template {
@@ -200,3 +206,5 @@ int sun4i_ss_des_setkey(struct crypto_ablkcipher *tfm, const u8 *key,
 			unsigned int keylen);
 int sun4i_ss_des3_setkey(struct crypto_ablkcipher *tfm, const u8 *key,
 			 unsigned int keylen);
+int sun4i_ss_hwrng_register(struct hwrng *hwrng);
+void sun4i_ss_hwrng_remove(struct hwrng *hwrng);

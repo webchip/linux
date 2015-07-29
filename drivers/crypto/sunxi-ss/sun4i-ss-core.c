@@ -359,6 +359,16 @@ static int sun4i_ss_probe(struct platform_device *pdev)
 		}
 	}
 	platform_set_drvdata(pdev, ss);
+
+#ifdef CONFIG_CRYPTO_DEV_SUN4I_SS_PRNG
+	/* Voluntarily made the PRNG optional */
+	err = sun4i_ss_hwrng_register(&ss->hwrng);
+	if (!err)
+		dev_info(ss->dev, "sun4i-ss PRNG loaded");
+	else
+		dev_err(ss->dev, "sun4i-ss PRNG failed");
+#endif
+
 	return 0;
 error_alg:
 	i--;
@@ -385,6 +395,10 @@ static int sun4i_ss_remove(struct platform_device *pdev)
 {
 	int i;
 	struct sun4i_ss_ctx *ss = platform_get_drvdata(pdev);
+
+#ifdef CONFIG_CRYPTO_DEV_SUN4I_SS_PRNG
+	sun4i_ss_hwrng_remove(&ss->hwrng);
+#endif
 
 	for (i = 0; i < ARRAY_SIZE(ss_algs); i++) {
 		switch (ss_algs[i].type) {
